@@ -1833,7 +1833,7 @@ if __name__ == "__main__":
                     count += 1
                 else:
                     print(f"SKIP (unknown command): {line}")
-                time.sleep(0.3)  # не долбить Google Sheets API слишком быстро
+                time.sleep(2.0)  # не долбить Google Sheets API слишком быстро
         print(f"\nDone. Imported {count} tariff entries.")
         raise SystemExit(0)
 
