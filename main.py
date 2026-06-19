@@ -1249,6 +1249,14 @@ async def on_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(chat_id=chat_id, text=summary, parse_mode=ParseMode.HTML)
             await send_all_drivers(context.bot, chat_id, driver_net, f"Все водители за {month_name}", None)
 
+        elif q.data == "staff:yesterday":
+            await q.edit_message_text("⏳ Считаю отчёт по штатным за вчера...")
+            await _send_staff_report(yesterday, chat_id, context.bot)
+
+        elif q.data == "staff:today":
+            await q.edit_message_text("⏳ Считаю отчёт по штатным за сегодня...")
+            await _send_staff_report(now_dubai, chat_id, context.bot)
+
         elif q.data == "rep:top":
             await q.edit_message_text("⏳ Считаю ТОП водителей...")
 
@@ -1720,7 +1728,13 @@ async def on_text_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Выбери месяц:", reply_markup=kb)
 
         elif "штатные" in text.lower():
-            await _send_staff_report(yesterday, chat_id, bot)
+            kb = InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("📊 За вчера", callback_data="staff:yesterday"),
+                    InlineKeyboardButton("📈 За сегодня", callback_data="staff:today"),
+                ]
+            ])
+            await update.message.reply_text("Выбери период:", reply_markup=kb)
 
         elif "топ" in text.lower():
             await update.message.reply_text("⏳ Считаю ТОП водителей...")
