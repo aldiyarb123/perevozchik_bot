@@ -29,7 +29,7 @@ load_dotenv(dotenv_path=Path(__file__).with_name(".env"))
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 log = logging.getLogger("fleet-reports")
 
-DUBAI_TZ = ZoneInfo("Asia/Dubai")
+DUBAI_TZ = ZoneInfo("Asia/Almaty")
 FLEET_BASE = "https://fleet-api.taxi.yandex.net"
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -1795,9 +1795,9 @@ def build_app() -> Application:
     app.add_handler(CallbackQueryHandler(on_button))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text_button))
 
-    # job queue: 09:00 Dubai = 05:00 UTC (Dubai = UTC+4)
+    # job queue: 09:00 Almaty = 03:00 UTC (Dubai = UTC+2)
     from datetime import timezone, time as dtime
-    report_time_utc = dtime(hour=5, minute=0, tzinfo=timezone.utc)
+    report_time_utc = dtime(hour=3, minute=0, tzinfo=timezone.utc)
     app.job_queue.run_daily(job_daily, time=report_time_utc, days=(0,1,2,3,4,5,6), name="daily_report")
     return app
 
