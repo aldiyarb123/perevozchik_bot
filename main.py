@@ -1435,7 +1435,7 @@ async def cmd_importtariffs(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             log.warning("importtariffs failed for %s: %s", fio, e)
             fail_count += 1
-        await asyncio.sleep(0.3)
+        await asyncio.sleep(3)
 
     await update.message.reply_text(
         f"✅ Импорт завершён.\nУспешно: {ok_count}\nОшибок: {fail_count}",
@@ -1833,7 +1833,7 @@ if __name__ == "__main__":
                     count += 1
                 else:
                     print(f"SKIP (unknown command): {line}")
-                time.sleep(4.0)  # не долбить Google Sheets API слишком быстро
+                time.sleep(0.3)  # не долбить Google Sheets API слишком быстро
         print(f"\nDone. Imported {count} tariff entries.")
         raise SystemExit(0)
 
