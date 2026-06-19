@@ -997,7 +997,7 @@ def format_quick_summary(day_str: str, agg: Dict[str, DriverAgg], month_orders: 
             group = "Штатные"
         else:
             t = (info.get("tariff") or "").strip().lower()
-            if t == "штатный":
+            if t in ("штатный", "штатный2.5"):                
                 group = "Штатные"
             elif t == "ара":
                 group = "АРА"
@@ -1507,7 +1507,7 @@ async def _send_staff_report(day_date, chat_id: int, bot):
     staff_agg = {}
     for fio, a in agg.items():
         info = tariffs.get(fio)
-        is_staff = (info is None) or ((info.get("tariff") or "").strip().lower() == "штатный")
+        is_staff = (info is None) or ((info.get("tariff") or "").strip().lower() in ("штатный", "штатный2.5"))
         if is_staff:
             staff_agg[fio] = a
 
