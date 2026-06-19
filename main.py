@@ -997,7 +997,7 @@ def format_quick_summary(day_str: str, agg: Dict[str, DriverAgg], month_orders: 
             group = "Штатные"
         else:
             t = (info.get("tariff") or "").strip().lower()
-            if t in ("штатный", "штатный2.5"):                
+            if t == "штатный":
                 group = "Штатные"
             elif t == "ара":
                 group = "АРА"
@@ -1435,7 +1435,7 @@ async def cmd_importtariffs(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             log.warning("importtariffs failed for %s: %s", fio, e)
             fail_count += 1
-        await asyncio.sleep(3)
+        await asyncio.sleep(0.3)
 
     await update.message.reply_text(
         f"✅ Импорт завершён.\nУспешно: {ok_count}\nОшибок: {fail_count}",
@@ -1507,7 +1507,7 @@ async def _send_staff_report(day_date, chat_id: int, bot):
     staff_agg = {}
     for fio, a in agg.items():
         info = tariffs.get(fio)
-        is_staff = (info is None) or ((info.get("tariff") or "").strip().lower() in ("штатный", "штатный2.5"))
+        is_staff = (info is None) or ((info.get("tariff") or "").strip().lower() == "штатный")
         if is_staff:
             staff_agg[fio] = a
 
@@ -1535,6 +1535,25 @@ async def _send_staff_report(day_date, chat_id: int, bot):
     except Exception as e:
         log.exception("_send_staff_report send list error")
         await bot.send_message(chat_id=chat_id, text=f"⚠ Ошибка при отправке списка водителей: {e}")
+
+    # Список тех кто не работал в этот день
+    try:
+        all_staff_fios = [
+            fio for fio, info in tariffs.items()
+            if (info.get("tariff") or "").strip().lower() in ("штатный", "штатный2.5")
+        ]
+        not_worked = [fio for fio in all_staff_fios if fio not in staff_agg]
+        if not_worked:
+            lines = "\n".join(f"• {fio}" for fio in sorted(not_worked))
+            await bot.send_message(
+                chat_id=chat_id,
+                text=f"😴 <b>Не работали {day_str} ({len(not_worked)} чел.):</b>\n\n{lines}",
+                parse_mode=ParseMode.HTML,
+                reply_markup=MAIN_KEYBOARD,
+            )
+    except Exception as e:
+        log.exception("_send_staff_report not_worked error")
+
 
 
 async def cmd_staff(update: Update, context: ContextTypes.DEFAULT_TYPE):
