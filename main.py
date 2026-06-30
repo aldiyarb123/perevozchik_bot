@@ -1167,7 +1167,13 @@ async def fetch_day_data(d, directory, tariffs=None):
             time_from, time_to, from_dt, to_dt = dubai_day_range(d)
             orders = orders_list_all(session, time_from, time_to, from_dt, to_dt)
             rows, agg = build_report_rows(str(d), orders, directory)
-            return agg, d
+            real_park = 0.0
+            try:
+                order_ids = [o.get("id") for o in orders if o.get("id")]
+                real_park = fetch_partner_commission(session, order_ids, time_from, time_to)
+            except Exception as e:
+                log.warning("fetch_partner_commission in fetch_day_data: %s", e)
+            return agg, d, real_park
     return await asyncio.to_thread(_sync)
 
 async def fetch_range_data(start_date, end_date, directory, tariffs=None):
@@ -1181,6 +1187,7 @@ async def fetch_range_data(start_date, end_date, directory, tariffs=None):
     total_orders = 0
     total_net = 0.0
     total_park = 0.0
+    total_real_park = 0.0
     driver_net = {}
     tariff_groups = {
         "Штатные": {"net": 0.0, "park": 0.0},
@@ -1193,7 +1200,8 @@ async def fetch_range_data(start_date, end_date, directory, tariffs=None):
         if isinstance(result, Exception):
             log.warning("Day fetch error: %s", result)
             continue
-        agg, day_date = result
+        agg, day_date, real_park = result
+        total_real_park += real_park
         for a in agg.values():
             total_orders += a.done
             total_net += a.net
@@ -1216,7 +1224,8 @@ async def fetch_range_data(start_date, end_date, directory, tariffs=None):
                     group = "Другие"
             tariff_groups[group]["net"] += a.net
             tariff_groups[group]["park"] += park_val
-    return total_orders, total_net, driver_net, total_park, tariff_groups
+    final_park = total_real_park if total_real_park > 0 else total_park
+    return total_orders, total_net, driver_net, final_park, tariff_groups
 
 async def on_text_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
